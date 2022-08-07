@@ -1,5 +1,6 @@
 #include "sdp.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int sdp_parse_version(sdp_desc_st *sdp, char *value)
@@ -10,37 +11,41 @@ int sdp_parse_version(sdp_desc_st *sdp, char *value)
 
 int sdp_parse_origin(sdp_desc_st *sdp, char *value)
 {
-	//char* p = strtok(value, " ");
-	//int i = 0;
-	//while (p != NULL)
-	//{
-	//	if (i == 0)
-	//	{
-	//		sdp->o_name = p;
-	//	}
-	//	else if (i == 1)
-	//	{
-	//		sdp->o_session_id = atol(p);
-	//	}
-	//	else if (i == 2)
-	//	{
-	//		sdp->o_session_version = atol(p);
-	//	}
-	//	else if (i == 3)
-	//	{
-	//		sdp->o_net_type = p;
-	//	}
-	//	else if (i == 4)
-	//	{
-	//		sdp->o_addr_type = p;
-	//	}
-	//	else if (i == 5)
-	//	{
-	//		sdp->o_addr = p;
-	//	}
-	//	p = strtok(NULL, " ");
-	//	i++;
-	//}
+	char *q = NULL;
+	char* p = value;
+	int i = 0;
+	do
+	{
+		q = p;
+		p = strstr(q, " ");
+		if (p != NULL)
+		{
+			*p = '\0';
+			p++;
+			if (i == 0)
+			{
+				sdp->o_name = q;
+			}
+			else if (i == 1)
+			{
+				sdp->o_session_id = atoll(q);
+			}
+			else if (i == 2)
+			{
+				sdp->o_session_version = atol(q);
+			}
+			else if (i == 3)
+			{
+				sdp->o_net_type = q;
+			}
+			else if (i == 4)
+			{
+				sdp->o_addr_type = q;
+				sdp->o_addr = p;
+			}
+			i++;
+		}
+	} while (p != NULL);
 	return 0;
 }
 
