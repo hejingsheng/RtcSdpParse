@@ -36,16 +36,21 @@ typedef struct
 	int extParam;
 	sdp_rtcp_fb_st *rtcp_fb;
 	char *format_specific_param;
-}sdp_rtpmap_st;
+}sdp_payload_st;
 
+struct payloadlist
+{
+	sdp_payload_st payload;
+	struct payloadlist *next;
+};
 
+typedef struct payloadlist sdp_payload_list;
 
 typedef struct
 {
 	int type; // 0 audio  1 video;
 	int port;
 	char *proto;
-	int *payload;
 	char *net_type;
 	char *addr_type;
 	char *addr;
@@ -58,7 +63,7 @@ typedef struct
 	uint8_t a_dir;  //0 sendonly 1 recvonly  2 sendrecv
 	uint8_t rtcp_mux;
 	uint8_t rtcp_rsize;
-	sdp_rtpmap_st *rtpmap;
+	sdp_payload_list *payloads;
 }sdp_media_desc_st;
 
 typedef struct
