@@ -23,17 +23,27 @@ typedef struct
 	char *value;
 }sdp_extmap_st;
 
+struct extmaplist
+{
+	sdp_extmap_st extmap;
+	struct extmaplist *next;
+};
+
+typedef struct extmaplist sdp_extmap_list;
+
 typedef struct
 {
 	char *name;
+	void *next;
 }sdp_rtcp_fb_st;
 
 typedef struct
 {
 	int payloadType;
-	char *name;
-	int rate;
-	int extParam;
+	char *rtpmap;
+	//char *name;
+	//int rate;
+	//int extParam;
 	sdp_rtcp_fb_st *rtcp_fb;
 	char *format_specific_param;
 }sdp_payload_st;
@@ -48,6 +58,17 @@ typedef struct payloadlist sdp_payload_list;
 
 typedef struct
 {
+	uint32_t ssrc;
+	char *cname;
+	char *label;
+	char *msid;
+	char *msid_track;
+	char *mslabel;
+	void *next;
+}sdp_ssrc_st;
+
+typedef struct
+{
 	int type; // 0 audio  1 video;
 	int port;
 	char *proto;
@@ -59,22 +80,13 @@ typedef struct
 	sdp_finger_print_st finger_print;
 	uint8_t a_setup_type;  // 0 active 1 passive  2 actpass
 	uint8_t a_mid;
-	sdp_extmap_st *extmap;
+	sdp_extmap_list *extmaps;
 	uint8_t a_dir;  //0 sendonly 1 recvonly  2 sendrecv
 	uint8_t rtcp_mux;
 	uint8_t rtcp_rsize;
 	sdp_payload_list *payloads;
+	sdp_ssrc_st *ssrcs;
 }sdp_media_desc_st;
-
-typedef struct
-{
-	uint32_t ssrc;
-	char *cname;
-	char *label;
-	char *msid;
-	char *msid_track;
-	char *mslabel;
-}sdp_ssrc_st;
 
 typedef struct
 {
@@ -96,7 +108,6 @@ typedef struct
 	uint64_t t_start;
 	uint64_t t_end;
 	sdp_media_desc_st *media_desc;
-	sdp_ssrc_st *ssrc;
 	sdp_candidate_st *candidate;
 }sdp_desc_st;
 
