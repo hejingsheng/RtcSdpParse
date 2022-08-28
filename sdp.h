@@ -13,7 +13,7 @@ typedef signed long long int int64_t;
 
 typedef struct
 {
-	char *type;
+	char type[10];
 	char *finger_print;
 }sdp_finger_print_st;
 

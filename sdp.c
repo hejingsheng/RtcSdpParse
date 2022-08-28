@@ -2,6 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+
+#define ALLOC_MEMORY(size) \
+	void *mem = malloc(size); \
+	assert(mem != NULL); \
+	memset(mem, 0, size); \
+
+#define FREE_MEMORY(ptr) \
+	if (ptr) \
+		free(ptr); \
 
 int sdp_parse_version(sdp_desc_st *sdp, char *value)
 {
@@ -24,7 +34,9 @@ int sdp_parse_origin(sdp_desc_st *sdp, char *value)
 			p++;
 			if (i == 0)
 			{
-				sdp->o_name = q;
+				ALLOC_MEMORY(strlen(q) + 1);
+				sdp->o_name = (char*)mem;
+				strcpy(sdp->o_name, q);
 			}
 			else if (i == 1)
 			{
@@ -36,17 +48,23 @@ int sdp_parse_origin(sdp_desc_st *sdp, char *value)
 			}
 			else if (i == 3)
 			{
-				sdp->o_net_type = q;
+				ALLOC_MEMORY(strlen(q) + 1);
+				sdp->o_net_type = (char*)mem;
+				strcpy(sdp->o_net_type, q);
 			}
 			else if (i == 4)
 			{
-				sdp->o_addr_type = q;
+				ALLOC_MEMORY(strlen(q) + 1);
+				sdp->o_addr_type = (char*)mem;
+				strcpy(sdp->o_addr_type, q);
 			}
 			i++;
 		}
 		else
 		{
-			sdp->o_addr = q;
+			ALLOC_MEMORY(strlen(q) + 1);
+			sdp->o_addr = (char*)mem;
+			strcpy(sdp->o_addr, q);
 		}
 	} while (p != NULL);
 	return 0;
@@ -54,7 +72,9 @@ int sdp_parse_origin(sdp_desc_st *sdp, char *value)
 
 int sdp_parse_session(sdp_desc_st *sdp, char *value)
 {
-	sdp->s_name = value;
+	ALLOC_MEMORY(strlen(value) + 1);
+	sdp->s_name = (char*)mem;
+	strcpy(sdp->s_name, value);
 	return 0;
 }
 
@@ -79,19 +99,25 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 	{
 		if (strncmp(value, "ice-ufrag", strlen("ice-ufrag")) == 0)
 		{
-			sdp->media_desc->a_ice_ufrag = p + 1;
+			ALLOC_MEMORY(strlen(p + 1) + 1);
+			sdp->media_desc->a_ice_ufrag = mem;
+			strcpy(sdp->media_desc->a_ice_ufrag, p + 1);
 		}
 		else if (strncmp(value, "ice-pwd", strlen("ice-pwd")) == 0)
 		{
-			sdp->media_desc->a_ice_pwd = p + 1;
+			ALLOC_MEMORY(strlen(p + 1) + 1);
+			sdp->media_desc->a_ice_pwd = mem;
+			strcpy(sdp->media_desc->a_ice_pwd, p + 1);
 		}
 		else if (strncmp(value, "fingerprint", strlen("fingerprint")) == 0)
 		{
 			char *q;
 			q = strchr(p + 1, ' ');
 			*q = '\0';
-			sdp->media_desc->finger_print.type = p + 1;
-			sdp->media_desc->finger_print.finger_print = q + 1;
+			strcpy(sdp->media_desc->finger_print.type, p + 1);
+			ALLOC_MEMORY(strlen(q + 1) + 1);
+			sdp->media_desc->finger_print.finger_print = mem;
+			strcpy(sdp->media_desc->finger_print.finger_print, q + 1);
 		}
 		else if (strncmp(value, "setup", strlen("setup")) == 0)
 		{
@@ -122,7 +148,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 				sdp_extmap_list *list = (sdp_extmap_list*)malloc(sizeof(sdp_extmap_list));
 				memset(list, 0, sizeof(sdp_extmap_list));
 				list->extmap.key = atoi(p + 1);
-				list->extmap.value = q + 1;
+				ALLOC_MEMORY(strlen(q + 1) + 1);
+				list->extmap.value = mem;
+				strcpy(list->extmap.value, q + 1);
 				list->next = NULL;
 				sdp->media_desc->extmaps = list;
 			}
@@ -136,7 +164,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 				sdp_extmap_list *newlist = (sdp_extmap_list*)malloc(sizeof(sdp_extmap_list));
 				memset(newlist, 0, sizeof(sdp_extmap_list));
 				newlist->extmap.key = atoi(p + 1);
-				newlist->extmap.value = q + 1;
+				ALLOC_MEMORY(strlen(q + 1) + 1);
+				newlist->extmap.value = mem;
+				strcpy(newlist->extmap.value, q + 1);
 				newlist->next = NULL;
 				list->next = newlist;
 			}
@@ -153,7 +183,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 			{
 				if (list->payload.payloadType == type)
 				{
-					list->payload.rtpmap = q + 1;
+					ALLOC_MEMORY(strlen(q + 1) + 1);
+					list->payload.rtpmap = mem;
+					strcpy(list->payload.rtpmap, q + 1);
 					break;
 				}
 				list = list->next;
@@ -175,7 +207,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 					{
 						sdp_rtcp_fb_st *fblist = (sdp_rtcp_fb_st*)malloc(sizeof(sdp_rtcp_fb_st));
 						memset(fblist, 0, sizeof(sdp_rtcp_fb_st));
-						fblist->name = q + 1;
+						ALLOC_MEMORY(strlen(q + 1) + 1);
+						fblist->name = mem;
+						strcpy(fblist->name, q + 1);
 						fblist->next = NULL;
 						list->payload.rtcp_fb = fblist;
 					}
@@ -188,7 +222,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 						}
 						sdp_rtcp_fb_st *newlist = (sdp_rtcp_fb_st*)malloc(sizeof(sdp_rtcp_fb_st));
 						memset(newlist, 0, sizeof(sdp_rtcp_fb_st));
-						newlist->name = q + 1;
+						ALLOC_MEMORY(strlen(q + 1) + 1);
+						newlist->name = mem;
+						strcpy(newlist->name, q + 1);
 						newlist->next = NULL;
 						fblist->next = newlist;
 					}
@@ -209,7 +245,9 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 			{
 				if (list->payload.payloadType == type)
 				{
-					list->payload.format_specific_param = q + 1;
+					ALLOC_MEMORY(strlen(q + 1) + 1);
+					list->payload.format_specific_param = mem;
+					strcpy(list->payload.format_specific_param, q + 1);
 					break;
 				}
 				list = list->next;
@@ -244,11 +282,15 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 				list->ssrc = ssrc;
 				if (cname)
 				{
-					list->cname = cname;
+					ALLOC_MEMORY(strlen(cname) + 1);
+					list->cname = mem;
+					strcpy(list->cname, cname);
 				}
 				if (label)
 				{
-					list->label = label;
+					ALLOC_MEMORY(strlen(label) + 1);
+					list->label = mem;
+					strcpy(list->label, label);
 				}
 				list->next = NULL;
 				sdp->media_desc->ssrcs = list;
@@ -262,11 +304,15 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 					{
 						if (cname)
 						{
-							list->cname = cname;
+							ALLOC_MEMORY(strlen(cname) + 1);
+							list->cname = mem;
+							strcpy(list->cname, cname);
 						}
 						if (label)
 						{
-							list->label = label;
+							ALLOC_MEMORY(strlen(label) + 1);
+							list->label = mem;
+							strcpy(list->label, label);
 						}
 						find = 1;
 						break;
@@ -280,11 +326,15 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 					newlist->ssrc = ssrc;
 					if (cname)
 					{
-						list->cname = cname;
+						ALLOC_MEMORY(strlen(cname) + 1);
+						list->cname = mem;
+						strcpy(list->cname, cname);
 					}
 					if (label)
 					{
-						list->label = label;
+						ALLOC_MEMORY(strlen(label) + 1);
+						list->label = mem;
+						strcpy(list->label, label);
 					}
 					newlist->next = NULL;
 					list->next = newlist;
@@ -293,7 +343,39 @@ int sdp_parse_attribute(sdp_desc_st *sdp, char *value)
 		}
 		else if (strncmp(value, "candidate", strlen("candidate")) == 0)
 		{
-			
+			int i = 0;
+			char *q;
+			sdp_candidate_st *candidate = (sdp_candidate_st*)malloc(sizeof(sdp_candidate_st));
+			assert(candidate != NULL);
+			memset(candidate, 0, sizeof(sdp_candidate_st));
+			sdp->candidate = candidate;
+			do
+			{
+				q = p;
+				p = strstr(q, " ");
+				if (p != NULL)
+				{
+					*p = '\0';
+					p++;
+					if (i == 4)
+					{
+						ALLOC_MEMORY(strlen(q) + 1);
+						candidate->ip = mem;
+						strcpy(candidate->ip, q);
+					}
+					else if (i == 5)
+					{
+						candidate->port = atoi(q);
+					}
+					else if (i == 7)
+					{
+						ALLOC_MEMORY(strlen(q) + 1);
+						candidate->type = mem;
+						strcpy(candidate->type, q);
+					}
+					i++;
+				}
+			} while (p != NULL);
 		}
 	}
 	else
@@ -327,13 +409,11 @@ int sdp_parse_media(sdp_desc_st *sdp, char *value)
 	char *q = NULL;
 	char* p = value;
 	int i = 0;
+
 	sdp_media_desc_st *media = (sdp_media_desc_st*)malloc(sizeof(sdp_media_desc_st));
-	if (media == NULL)
-	{
-		return -1;
-	}
+	assert(media != NULL);
 	memset(media, 0, sizeof(sdp_media_desc_st));
-	sdp->media_desc = media;
+	sdp->media_desc = (sdp_media_desc_st*)media;
 	do
 	{
 		q = p;
@@ -346,34 +426,36 @@ int sdp_parse_media(sdp_desc_st *sdp, char *value)
 			{
 				if (strcmp(q, "audio") == 0)
 				{
-					media->type = 0;
+					sdp->media_desc->type = 0;
 				}
 				else
 				{
-					media->type = 1;
+					sdp->media_desc->type = 1;
 				}
 			}
 			else if (i == 1)
 			{
-				media->port = atoi(q);
+				sdp->media_desc->port = atoi(q);
 			}
 			else if (i == 2)
 			{
-				media->proto = q;
+				ALLOC_MEMORY(strlen(q) + 1);
+				sdp->media_desc->proto = mem;
+				strcpy(sdp->media_desc->proto, q);
 			}
 			else
 			{
-				if (media->payloads == NULL)
+				if (sdp->media_desc->payloads == NULL)
 				{
 					sdp_payload_list *list = (sdp_payload_list*)malloc(sizeof(sdp_payload_list));
 					memset(list, 0, sizeof(sdp_payload_list));
 					list->payload.payloadType = atoi(q);
 					list->next = NULL;
-					media->payloads = list;
+					sdp->media_desc->payloads = list;
 				}
 				else
 				{
-					sdp_payload_list *list = media->payloads;
+					sdp_payload_list *list = sdp->media_desc->payloads;
 					while (list->next)
 					{
 						list = list->next;
@@ -389,17 +471,17 @@ int sdp_parse_media(sdp_desc_st *sdp, char *value)
 		}
 		else
 		{
-			if (media->payloads == NULL)
+			if (sdp->media_desc->payloads == NULL)
 			{
 				sdp_payload_list *list = (sdp_payload_list*)malloc(sizeof(sdp_payload_list));
 				memset(list, 0, sizeof(sdp_payload_list));
 				list->payload.payloadType = atoi(q);
 				list->next = NULL;
-				media->payloads = list;
+				sdp->media_desc->payloads = list;
 			}
 			else
 			{
-				sdp_payload_list *list = media->payloads;
+				sdp_payload_list *list = sdp->media_desc->payloads;
 				while (list->next)
 				{
 					list = list->next;
@@ -424,7 +506,7 @@ int sdp_parse(char *sdp_str, int len, sdp_desc_st *sdp)
 	{
 		char key = p[0];
 		char *value = p + 2;
-		printf("%c=%s\n", key, value);
+		//printf("%c=%s\n", key, value);
 		switch (key)
 		{
 		case 'v':
@@ -461,6 +543,97 @@ int sdp_parse(char *sdp_str, int len, sdp_desc_st *sdp)
 	return 0;
 }
 
+void sdp_free_extmap(sdp_extmap_list *list)
+{
+	while (list)
+	{
+		FREE_MEMORY(list->extmap.value);
+		sdp_extmap_list *tmp = list;
+		list = list->next;
+		FREE_MEMORY(tmp);
+	}
+}
+
+void sdp_free_rtcpfb(sdp_rtcp_fb_st *rtcpfbs)
+{
+	while (rtcpfbs)
+	{
+		FREE_MEMORY(rtcpfbs->name);
+		sdp_rtcp_fb_st *tmp = rtcpfbs;
+		rtcpfbs = rtcpfbs->next;
+		FREE_MEMORY(tmp);
+	}
+}
+
+void sdp_free_payloads(sdp_payload_list *list)
+{
+	while (list)
+	{
+		FREE_MEMORY(list->payload.rtpmap);
+		FREE_MEMORY(list->payload.format_specific_param);
+		sdp_free_rtcpfb(list->payload.rtcp_fb);
+		sdp_payload_list *tmp = list;
+		list = list->next;
+		FREE_MEMORY(tmp);
+	}
+}
+
+void sdp_free_ssrc(sdp_ssrc_st *ssrcs)
+{
+	while (ssrcs)
+	{
+		FREE_MEMORY(ssrcs->cname);
+		FREE_MEMORY(ssrcs->label);
+		FREE_MEMORY(ssrcs->msid);
+		FREE_MEMORY(ssrcs->msid_track);
+		FREE_MEMORY(ssrcs->mslabel);
+		sdp_ssrc_st *tmp = ssrcs;
+		ssrcs = ssrcs->next;
+		FREE_MEMORY(tmp);
+	}
+}
+
+void sdp_free_media(sdp_media_desc_st *media)
+{
+	if (media)
+	{
+		FREE_MEMORY(media->proto);
+		FREE_MEMORY(media->net_type);
+		FREE_MEMORY(media->addr_type);
+		FREE_MEMORY(media->addr);
+		FREE_MEMORY(media->a_ice_ufrag);
+		FREE_MEMORY(media->a_ice_pwd);
+		FREE_MEMORY(media->finger_print.finger_print);
+		sdp_free_extmap(media->extmaps);
+		sdp_free_payloads(media->payloads);
+		sdp_free_ssrc(media->ssrcs);
+		FREE_MEMORY(media);
+	}
+}
+
+void sdp_free_candidate(sdp_candidate_st *candidate)
+{
+	if (candidate)
+	{
+		FREE_MEMORY(candidate->ip);
+		FREE_MEMORY(candidate->type);
+		FREE_MEMORY(candidate);
+	}
+}
+
+void sdp_free(sdp_desc_st *sdp)
+{
+	if (sdp)
+	{
+		FREE_MEMORY(sdp->o_name);
+		FREE_MEMORY(sdp->o_net_type);
+		FREE_MEMORY(sdp->o_addr_type);
+		FREE_MEMORY(sdp->o_addr);
+		FREE_MEMORY(sdp->s_name);
+		sdp_free_media(sdp->media_desc);
+		sdp_free_candidate(sdp->candidate);
+	}
+}
 
 int main()
 {
@@ -487,10 +660,15 @@ a=rtcp-mux\r\n\
 a=rtpmap:111 opus/48000/2\r\n\
 a=rtcp-fb:111 transport-cc\r\n\
 a=fmtp:111 minptime=10;useinbandfec=1\r\n\
-a=rtpmap:0 PCMU/8000\r\n";
+a=rtpmap:0 PCMU/8000\r\n\
+a=ssrc:229585655 cname:42f736008211x886\r\n\
+a=ssrc:229585655 label:video-c6c84c1i\r\n\
+a=candidate:0 1 udp 2130706431 8.135.38.10 8000 typ host generation 0\r\n";
 	char sdp_s[1024];
 	sdp_desc_st sdp;
 	strcpy(sdp_s, sdp_str);
 	sdp_parse(sdp_s, strlen(sdp_s), &sdp);
+	memset(sdp_s, 0, 1024);
+	sdp_free(&sdp);
 	return 0;
 }
